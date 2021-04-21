@@ -7,7 +7,7 @@ class Example : public olc::PixelGameEngine
 public:
 	Example()
 	{
-		sAppName = "Example";
+		sAppName = "Example Project";
 	}
 
 public:
