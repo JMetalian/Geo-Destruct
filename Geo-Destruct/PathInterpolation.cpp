@@ -5,15 +5,23 @@ using namespace std;
 
 #include "olcPixelGameEngine.h"
 
+
+#define ISLOOPED true //Should be true always
+#define VSYNC true
+#define FULLSCREEN false
+
 struct Points
 {
-	float x;//coordinates
+	//coordinates
+	float x;
 	float y;
+	float distanceBetweenPoints; 
 };
 
 struct Spline
 {
 	vector<Points> points;
+	float normOfSpline;
 	Points GetSplinePoint(float t, bool isLooped = false)
 	{
 		int p0, p1, p2, p3;
@@ -29,16 +37,14 @@ struct Spline
 			p1 = (int)t;
 			p2 = (p1 + 1) % points.size();
 			p3 = (p2 + 1) % points.size();
-			if (p1 >= 1) 
+			if (p1 >= 1)
 			{
 				p0 = p1 - 1;
-
 			}
 			else
 			{
 				p0 = points.size() - 1;
 			}
-			//p0 = p1 >= 1 ? p1 - 1 : points.size() - 1;
 		}
 
 		t = t - (int)t;
@@ -46,13 +52,13 @@ struct Spline
 		float tt = t * t;
 		float ttt = tt * t;
 
-		float q1 = -ttt + 2.0f * tt - t;
-		float q2 = 3.0f * ttt - 5.0f * tt + 2.0f;
-		float q3 = -3.0f * ttt + 4.0f * tt + t;
-		float q4 = ttt - tt;
+		float p1Prime = -ttt + 2.0f * tt - t;
+		float p2Prime = 3.0f * ttt - 5.0f * tt + 2.0f;
+		float p3Prime = -3.0f * ttt + 4.0f * tt + t;
+		float p4Prime = ttt - tt;
 
-		float tx = 0.5f * (points[p0].x * q1 + points[p1].x * q2 + points[p2].x * q3 + points[p3].x * q4);
-		float ty = 0.5f * (points[p0].y * q1 + points[p1].y * q2 + points[p2].y * q3 + points[p3].y * q4);
+		float tx = 0.5f * (points[p0].x * p1Prime + points[p1].x * p2Prime + points[p2].x * p3Prime + points[p3].x * p4Prime);
+		float ty = 0.5f * (points[p0].y * p1Prime + points[p1].y * p2Prime + points[p2].y * p3Prime + points[p3].y * p4Prime);
 
 		return{ tx, ty };
 	}
@@ -65,7 +71,7 @@ struct Spline
 			p1 = (int)t + 1;
 			p2 = p1 + 1;
 			p3 = p2 + 1;
-			p0 = p1 - 1;
+			p0 = p1-1;
 		}
 		else
 		{
@@ -80,15 +86,46 @@ struct Spline
 		float tt = t * t;
 		float ttt = tt * t;
 
-		float q1 = -3.0f * tt + 4.0f * t - 1;
-		float q2 = 9.0f * tt - 10.0f * t;
-		float q3 = -9.0f * tt + 8.0f * t + 1.0f;
-		float q4 = 3.0f * tt - 2.0f * t;
+		//Catmull-rom Interpolation
+		float p1Prime = -3.0f * tt + 4.0f * t - 1;
+		float p2Prime = 9.0f * tt - 10.0f * t;
+		float p3Prime = -9.0f * tt + 8.0f * t + 1.0f;
+		float p4Prime = 3.0f * tt - 2.0f * t;
 
-		float tx = 0.5f * (points[p0].x * q1 + points[p1].x * q2 + points[p2].x * q3 + points[p3].x * q4);
-		float ty = 0.5f * (points[p0].y * q1 + points[p1].y * q2 + points[p2].y * q3 + points[p3].y * q4);
+		float tx = 0.5f * (points[p0].x * p1Prime + points[p1].x * p2Prime + points[p2].x * p3Prime + points[p3].x * p4Prime);
+		float ty = 0.5f * (points[p0].y * p1Prime + points[p1].y * p2Prime + points[p2].y * p3Prime + points[p3].y * p4Prime);
+
+		
 
 		return{ tx, ty };
+	}
+	float GetPortionLength(int node, bool isLooped = false) //Returns the norm of single segment among many others between two points
+	{
+		float norm = 0.0f;
+		float stepSize = 0.003f;
+		Points oldPoint;
+		Points newPoint;
+
+		oldPoint = GetSplinePoint((float)node, isLooped);
+
+		for (float i = 0; i < 1.0f; i += stepSize) 
+		{
+			newPoint = GetSplinePoint((float)node + i, isLooped);
+			//Pythogoras Theorem
+			norm += sqrtf((newPoint.x - oldPoint.x) * (newPoint.x - oldPoint.x) + (newPoint.y - oldPoint.y) * (newPoint.y - oldPoint.y));
+			oldPoint = newPoint;
+		}
+		return norm;
+	}
+	float NormalOffSet(float position)
+	{
+		int i = 0;
+		while (position > points[i].distanceBetweenPoints)
+		{
+			position -= points[i].distanceBetweenPoints;
+			i++;
+		}
+		return (float)i + (position / points[i].distanceBetweenPoints);
 	}
 };
 
@@ -97,7 +134,7 @@ class PathInterpolation : public olc::PixelGameEngine
 public:
 	PathInterpolation()
 	{
-		sAppName = "Path Interpolation";	
+		sAppName = "Path Interpolation";
 	}
 
 private:
@@ -108,7 +145,12 @@ private:
 protected:
 	virtual bool OnUserCreate()
 	{
-		path.points = { { 10, 41 },{ 20, 41 },{ 30, 41 },{ 40, 41 },{ 50, 41 },{ 60, 41 },{ 70, 41 },{ 80, 41 },{ 90, 41 },{ 100, 41 } };
+		path.points = { { 10, 41 },{ 30, 41 },{ 50, 41 },{ 70, 41 },{ 100, 41 } };
+		
+		//for (int i = 0; i < 10; i++)
+		//	path.points.push_back({ 30.0f * sinf((float)i / 10.0f * 3.14159f * 2.0f) + ScreenWidth() / 2,
+		//							30.0f * cosf((float)i / 10.0f * 3.14159f * 2.0f) + ScreenHeight() / 2 });
+		
 		return true;
 	}
 
@@ -141,43 +183,55 @@ protected:
 
 		if (GetKey(olc::Key::DOWN).bHeld)
 			path.points[selectedPointInPath].y += 30.0f * fElapsedTime;
-
-		if (GetKey(olc::Key::A).bHeld)
-			fMarker -= 5.0f * fElapsedTime;
+		//TODO: FIND A WAY TO ORGANIZE INPUT HANDLING AND LIMIT POINTS
+		//if (GetKey(olc::Key::A).bHeld)
+		//	fMarker -= 50.0f * fElapsedTime;	
 
 		if (GetKey(olc::Key::S).bHeld)
-			fMarker += 5.0f * fElapsedTime;
+			fMarker += 50.0f * fElapsedTime;
 
-		if (fMarker >= (float)path.points.size())
-			fMarker -= (float)path.points.size();
+		if (fMarker >= (float)path.normOfSpline)
+			fMarker -= (float)path.normOfSpline;
 
 		if (fMarker < 0.0f)
-			fMarker += (float)path.points.size();
+			fMarker += (float)path.normOfSpline;
 
 		// Draw Spline
-		for (float t = 0; t < (float)path.points.size(); t += 0.005f)
+		for (float t = 0; t < (float)(path.points.size()-1); t += 0.005f)
 		{
-			Points position = path.GetSplinePoint(t, true);
+			Points position = path.GetSplinePoint(t, ISLOOPED);
 			Draw(position.x, position.y);
-		}
+		} 
 
+		path.normOfSpline = .0f;
 		// Draw Control Points
 		for (int i = 0; i < path.points.size(); i++)
 		{
-			DrawLine(path.points[i].x - 1, path.points[i].y - 1, path.points[i].x + 2, path.points[i].y + 2,olc::RED);
-			Draw(path.points[i].x, path.points[i].y);
+			path.normOfSpline +=(path.points[i].distanceBetweenPoints = path.GetPortionLength(i, ISLOOPED));
+			DrawCircle(path.points[i].x,path.points[i].y, 2, olc::WHITE);
 		}
 
-		// Highlight control point
-		DrawLine(path.points[selectedPointInPath].x - 1, path.points[selectedPointInPath].y - 1, path.points[selectedPointInPath].x + 2, path.points[selectedPointInPath].y + 2, olc::YELLOW);
-		Draw(path.points[selectedPointInPath].x, path.points[selectedPointInPath].y);
-
-		// Draw agent to demonstrate gradient
-		Points p1 = path.GetSplinePoint(fMarker, true);
-		Points g1 = path.GetSplineGradient(fMarker, true);
+		// Highlight controllers
+		DrawLine(path.points[selectedPointInPath].x - 1, path.points[selectedPointInPath].y - 1, path.points[selectedPointInPath].x + 2, path.points[selectedPointInPath].y + 2, olc::RED);
+			
+		// Gradient demonstrater
+		float offSet = path.NormalOffSet(fMarker);
+		if (offSet >=(float)(path.points.size() - 1))
+		{
+			offSet = path.points.size() - 1;
+			fMarker-=50.0f*fElapsedTime;
+		}
+		Points p1 = path.GetSplinePoint(offSet, ISLOOPED);
+		Points g1 = path.GetSplineGradient(offSet, ISLOOPED);
 		float angle = atan2(-g1.y, g1.x);
-		DrawLine((5.0f * sin(angle) + p1.x), (5.0f * cos(angle) + p1.y), (-5.0f * sin(angle) + p1.x), (-5.0f * cos(angle) + p1.y), olc::CYAN);
+		FillCircle(p1.x, p1.y, 3, olc::WHITE);
+		DrawLine((3.0f * sin(angle) + p1.x), (3.0f * cos(angle) + p1.y), (-3.0f * sin(angle) + p1.x), (-3.0f * cos(angle) + p1.y), olc::MAGENTA);
 
+		//In order to visualize the
+		//DrawString(2, 2, to_string(fMarker),olc::WHITE, 1);
+		//DrawString(2, 8, to_string(offSet),olc::WHITE, 1);
+
+		
 		return true;
 	}
 };
@@ -185,7 +239,7 @@ protected:
 int main()
 {
 	PathInterpolation application;
-	application.Construct(100, 80, 10, 10);
+	application.Construct(160, 80, 10, 10, FULLSCREEN, VSYNC);
 	application.Start();
 	return 0;
 }
