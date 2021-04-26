@@ -6,7 +6,7 @@ using namespace std;
 #include "olcPixelGameEngine.h"
 
 
-#define ISLOOPED true //Should be true always
+#define ISLOOPED true //Should always be true.
 #define VSYNC true
 #define FULLSCREEN false
 
@@ -46,7 +46,6 @@ struct Spline
 				p0 = points.size() - 1;
 			}
 		}
-
 		t = t - (int)t;
 
 		float tt = t * t;
@@ -95,8 +94,6 @@ struct Spline
 		float tx = 0.5f * (points[p0].x * p1Prime + points[p1].x * p2Prime + points[p2].x * p3Prime + points[p3].x * p4Prime);
 		float ty = 0.5f * (points[p0].y * p1Prime + points[p1].y * p2Prime + points[p2].y * p3Prime + points[p3].y * p4Prime);
 
-		
-
 		return{ tx, ty };
 	}
 	float GetPortionLength(int node, bool isLooped = false) //Returns the norm of single segment among many others between two points
@@ -129,10 +126,10 @@ struct Spline
 	}
 };
 
-class PathInterpolation : public olc::PixelGameEngine
+class Geo_Destruct : public olc::PixelGameEngine
 {
 public:
-	PathInterpolation()
+	Geo_Destruct()
 	{
 		sAppName = "Path Interpolation";
 	}
@@ -145,12 +142,10 @@ private:
 protected:
 	virtual bool OnUserCreate()
 	{
-		path.points = { { 10, 41 },{ 30, 41 },{ 50, 41 },{ 70, 41 },{ 100, 41 } };
-		
+		path.points = {{ 10, 41 },{ 30, 41 },{ 50, 41 },{ 70, 41 },{ 100, 41 }};
 		//for (int i = 0; i < 10; i++)
 		//	path.points.push_back({ 30.0f * sinf((float)i / 10.0f * 3.14159f * 2.0f) + ScreenWidth() / 2,
 		//							30.0f * cosf((float)i / 10.0f * 3.14159f * 2.0f) + ScreenHeight() / 2 });
-		
 		return true;
 	}
 
@@ -159,35 +154,34 @@ protected:
 		// Clear Screen
 		Clear(olc::BLACK);
 		// Input Handling
-		if (GetKey(olc::Key::X).bReleased)
+		//Switch to the previous controlling point by pressing "E" button.
+		if (GetKey(olc::Key::E).bReleased)
 		{
 			selectedPointInPath++;
 			if (selectedPointInPath >= path.points.size())
 				selectedPointInPath = 0;
 		}
-
-		if (GetKey(olc::Key::Z).bReleased)
+		//Switch to the previous controlling point by pressing "Q" button.
+		if (GetKey(olc::Key::Q).bReleased)
 		{
 			selectedPointInPath--;
 			if (selectedPointInPath < 0)
 				selectedPointInPath = path.points.size() - 1;
 		}
-		if (GetKey(olc::Key::LEFT).bHeld)
+		if (GetKey(olc::Key::LEFT).bHeld)//Control the selected point
 			path.points[selectedPointInPath].x -= 30.0f * fElapsedTime;
 
-		if (GetKey(olc::Key::RIGHT).bHeld)
+		if (GetKey(olc::Key::RIGHT).bHeld)//Control the selected point
 			path.points[selectedPointInPath].x += 30.0f * fElapsedTime;
 
-		if (GetKey(olc::Key::UP).bHeld)
+		if (GetKey(olc::Key::UP).bHeld)//Control the selected point
 			path.points[selectedPointInPath].y -= 30.0f * fElapsedTime;
 
-		if (GetKey(olc::Key::DOWN).bHeld)
+		if (GetKey(olc::Key::DOWN).bHeld)//Control the selected point
 			path.points[selectedPointInPath].y += 30.0f * fElapsedTime;
-		//TODO: FIND A WAY TO ORGANIZE INPUT HANDLING AND LIMIT POINTS
-		//if (GetKey(olc::Key::A).bHeld)
-		//	fMarker -= 50.0f * fElapsedTime;	
 
-		if (GetKey(olc::Key::S).bHeld)
+		//Move the character on the spline by pressing "W".
+		if (GetKey(olc::Key::W).bHeld)
 			fMarker += 50.0f * fElapsedTime;
 
 		if (fMarker >= (float)path.normOfSpline)
@@ -218,7 +212,7 @@ protected:
 		float offSet = path.NormalOffSet(fMarker);
 		if (offSet >=(float)(path.points.size() - 1))
 		{
-			offSet = path.points.size() - 1;
+			offSet = (float)path.points.size() - 1.0f;
 			fMarker-=50.0f*fElapsedTime;
 		}
 		Points p1 = path.GetSplinePoint(offSet, ISLOOPED);
@@ -231,15 +225,25 @@ protected:
 		//DrawString(2, 2, to_string(fMarker),olc::WHITE, 1);
 		//DrawString(2, 8, to_string(offSet),olc::WHITE, 1);
 
-		
+		//Place Holder Square Drawings
+		//TODO Refine it
+		DrawRect(ScreenWidth()/2, ScreenHeight()/2+20, 2, 2, olc::WHITE);
+		DrawRect(ScreenWidth()/2+4, ScreenHeight()/2+20, 2, 2, olc::WHITE);
+		DrawRect(ScreenWidth()/2, ScreenHeight()/2+24, 2, 2, olc::WHITE);
+		DrawRect(ScreenWidth()/2+4, ScreenHeight()/2+24, 2, 2, olc::WHITE);
+		DrawRect(ScreenWidth()/2, ScreenHeight()/2+28, 2, 2, olc::WHITE);
+		DrawRect(ScreenWidth()/2+4, ScreenHeight()/2+28, 2, 2, olc::WHITE);	
+		DrawRect(ScreenWidth()/2, ScreenHeight()/2+32, 2, 2, olc::WHITE);
+		DrawRect(ScreenWidth()/2+4, ScreenHeight()/2+32, 2, 2, olc::WHITE);
+
 		return true;
 	}
 };
 
 int main()
 {
-	PathInterpolation application;
-	application.Construct(160, 80, 10, 10, FULLSCREEN, VSYNC);
+	Geo_Destruct application;
+	application.Construct(110, 80, 10, 10, FULLSCREEN, VSYNC);
 	application.Start();
 	return 0;
 }
