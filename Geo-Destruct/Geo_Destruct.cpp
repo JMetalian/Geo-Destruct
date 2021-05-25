@@ -126,26 +126,107 @@ struct Spline
 	}
 };
 
+struct CircleCollider
+{
+	float px, py;
+	float vx, vy;
+	float ax, ay;
+	float radius;
+	float mass;
+
+	int id;
+};
+
 class Geo_Destruct : public olc::PixelGameEngine
 {
-public:
-	Geo_Destruct()
-	{
-		sAppName = "Path Interpolation";
-	}
-
 private:
 	Spline path;
 	int selectedPointInPath = 0;
 	float fMarker = 0.0f;
 
+
+	vector<pair<float, float>> defaultCircleCollider;
+	vector<CircleCollider> vectorOfAllColliders;
+	//CircleCollider* pSelectedBall = nullptr;
+	// Adds a ball to the vector
+	void AddNewCircleCollider(float x, float y, float r = 5.0f)
+	{
+		CircleCollider circleCollider;
+		circleCollider.px = x; circleCollider.py = y;
+		circleCollider.vx = 0; circleCollider.vy = 0;
+		circleCollider.ax = 0; circleCollider.ay = 0;
+		circleCollider.radius = r;
+		circleCollider.mass = r * 10.0f;
+
+		circleCollider.id = vectorOfAllColliders.size();//In order to uniquely name them.
+		vectorOfAllColliders.emplace_back(circleCollider);
+	}//Helper Function for drawing which is not existent in olc::PGE
+	void DrawWireFrameModel(const std::vector<std::pair<float, float>>& vecModelCoordinates, float x, float y, float r, float s, olc::Pixel col, int c = 1)
+	{
+		// pair.first = x coordinate
+		// pair.second = y coordinate
+
+		// Create translated model vector of coordinate pairs
+		std::vector<std::pair<float, float>> vecTransformedCoordinates;
+		int verts = vecModelCoordinates.size();
+		vecTransformedCoordinates.resize(verts);
+
+		// Rotate
+		for (int i = 0; i < verts; i++)
+		{
+			vecTransformedCoordinates[i].first = vecModelCoordinates[i].first * cosf(r) - vecModelCoordinates[i].second * sinf(r);
+			vecTransformedCoordinates[i].second = vecModelCoordinates[i].first * sinf(r) + vecModelCoordinates[i].second * cosf(r);
+		}
+
+		// Scale
+		for (int i = 0; i < verts; i++)
+		{
+			vecTransformedCoordinates[i].first = vecTransformedCoordinates[i].first * s;
+			vecTransformedCoordinates[i].second = vecTransformedCoordinates[i].second * s;
+		}
+
+		// Translate
+		for (int i = 0; i < verts; i++)
+		{
+			vecTransformedCoordinates[i].first = vecTransformedCoordinates[i].first + x;
+			vecTransformedCoordinates[i].second = vecTransformedCoordinates[i].second + y;
+		}
+
+		// Draw Closed Polygon
+		for (int i = 0; i < verts + 1; i++)
+		{
+			int j = (i + 1);
+			DrawLine((int)vecTransformedCoordinates[i % verts].first, (int)vecTransformedCoordinates[i % verts].second,
+				(int)vecTransformedCoordinates[j % verts].first, (int)vecTransformedCoordinates[j % verts].second, col);
+
+		}
+	}
+
+public:
+	Geo_Destruct()
+	{
+		sAppName = "Geo-Destruct";
+	}
+
 protected:
 	virtual bool OnUserCreate()
 	{
 		path.points = {{ 10, 41 },{ 30, 41 },{ 50, 41 },{ 70, 41 },{ 100, 41 }};
-		//for (int i = 0; i < 10; i++)
-		//	path.points.push_back({ 30.0f * sinf((float)i / 10.0f * 3.14159f * 2.0f) + ScreenWidth() / 2,
-		//							30.0f * cosf((float)i / 10.0f * 3.14159f * 2.0f) + ScreenHeight() / 2 });
+
+		//A Default Circle Collider
+		defaultCircleCollider.push_back({ 0.0f, 0.0f });
+		int nPoints = 20;
+		for (int i = 0; i < nPoints; i++)
+			defaultCircleCollider.push_back({ cosf(i / (float)(nPoints - 1) * 2.0f * 3.14159f) , sinf(i / (float)(nPoints - 1) * 2.0f * 3.14159f) });
+
+		float radiusForBalls = 3.0f;
+		AddNewCircleCollider(ScreenWidth() / 2, ScreenHeight() / 2 + 20, radiusForBalls);
+		AddNewCircleCollider(ScreenWidth() / 2 + 6, ScreenHeight() / 2 + 20, radiusForBalls);
+		AddNewCircleCollider(ScreenWidth()/2, ScreenHeight()/2+24, radiusForBalls);
+		AddNewCircleCollider(ScreenWidth() / 2+6, ScreenHeight() / 2 + 24, radiusForBalls);
+		AddNewCircleCollider(0, 0, 3.0f); //Player Collider
+
+
 		return true;
 	}
 
@@ -153,6 +234,7 @@ protected:
 	{
 		// Clear Screen
 		Clear(olc::BLACK);
+
 		// Input Handling
 		//Switch to the previous controlling point by pressing "E" button.
 		if (GetKey(olc::Key::E).bReleased)
@@ -218,23 +300,187 @@ protected:
 		Points p1 = path.GetSplinePoint(offSet, ISLOOPED);
 		Points g1 = path.GetSplineGradient(offSet, ISLOOPED);
 		float angle = atan2(-g1.y, g1.x);
-		FillCircle(p1.x, p1.y, 3, olc::WHITE);
-		DrawLine((3.0f * sin(angle) + p1.x), (3.0f * cos(angle) + p1.y), (-3.0f * sin(angle) + p1.x), (-3.0f * cos(angle) + p1.y), olc::MAGENTA);
+		//FillCircle(p1.x, p1.y, 3, olc::WHITE);
+		//DrawLine((3.0f * sin(angle) + p1.x), (3.0f * cos(angle) + p1.y), (-3.0f * sin(angle) + p1.x), (-3.0f * cos(angle) + p1.y), olc::MAGENTA);
 
-		//In order to visualize the
+		//In order to visualize
 		//DrawString(2, 2, to_string(fMarker),olc::WHITE, 1);
 		//DrawString(2, 8, to_string(offSet),olc::WHITE, 1);
 
-		//Place Holder Square Drawings
-		//TODO Refine it
-		DrawRect(ScreenWidth()/2, ScreenHeight()/2+20, 2, 2, olc::WHITE);
-		DrawRect(ScreenWidth()/2+4, ScreenHeight()/2+20, 2, 2, olc::WHITE);
-		DrawRect(ScreenWidth()/2, ScreenHeight()/2+24, 2, 2, olc::WHITE);
-		DrawRect(ScreenWidth()/2+4, ScreenHeight()/2+24, 2, 2, olc::WHITE);
-		DrawRect(ScreenWidth()/2, ScreenHeight()/2+28, 2, 2, olc::WHITE);
-		DrawRect(ScreenWidth()/2+4, ScreenHeight()/2+28, 2, 2, olc::WHITE);	
-		DrawRect(ScreenWidth()/2, ScreenHeight()/2+32, 2, 2, olc::WHITE);
-		DrawRect(ScreenWidth()/2+4, ScreenHeight()/2+32, 2, 2, olc::WHITE);
+		auto DoCirclesOverlap = [](float x1, float y1, float r1, float x2, float y2, float r2)
+		{
+			return fabs((x1 - x2) * (x1 - x2) + (y1 - y2) * (y1 - y2)) <= (r1 + r2) * (r1 + r2);
+		};
+
+		//auto IsPointInCircle = [](float x1, float y1, float r1, float px, float py)
+		//{
+		//	return fabs((x1 - px) * (x1 - px) + (y1 - py) * (y1 - py)) < (r1 * r1);
+		//};
+
+		//if (/*GetMouse(0).bPressed ||*/ GetMouse(1).bPressed)
+		//{
+		//	pSelectedBall = nullptr;
+		//	for (auto& ball : vectorOfAllColliders)
+		//	{
+		//		if (IsPointInCircle(ball.px, ball.py, ball.radius, GetMouseX(), GetMouseY()))
+		//		{
+		//			pSelectedBall = &ball;
+		//			break;
+		//		}
+		//	}
+		//}
+
+		//if (GetMouse(0).bHeld)
+		//{
+		//	if (pSelectedBall != nullptr)
+		//	{
+		//		pSelectedBall->px = GetMouseX();
+		//		pSelectedBall->py = GetMouseY();
+		//	}
+		//}
+
+		//if (GetMouse(0).bReleased)
+		//{
+		//	pSelectedBall = nullptr;
+		//}
+
+		//if (GetMouse(1).bReleased)
+		//{
+		//	if (pSelectedBall != nullptr)
+		//	{
+		//		// Apply velocity
+		//		pSelectedBall->vx = 5.0f * ((pSelectedBall->px) - (float)GetMouseX());
+		//		pSelectedBall->vy = 5.0f * ((pSelectedBall->py) - (float)GetMouseY());
+		//	}
+
+		//	pSelectedBall = nullptr;
+		//}
+		vector<pair<CircleCollider*, CircleCollider*>> vectorOfCollidingTwo;
+
+		// Update Ball Positions
+		for (auto& circleCol : vectorOfAllColliders)
+		{
+			// Add Drag to emulate rolling friction
+			circleCol.ax = -circleCol.vx * 0.8f;
+			circleCol.ay = -circleCol.vy * 0.8f;
+
+			// Update ball physics
+			circleCol.vx += circleCol.ax * fElapsedTime;
+			circleCol.vy += circleCol.ay * fElapsedTime;
+			circleCol.px += circleCol.vx * fElapsedTime;
+			circleCol.py += circleCol.vy * fElapsedTime;
+
+			//// Wrap the balls around screen
+			//if (ball.px < 0) ball.px += (float)ScreenWidth();
+			//if (ball.px >= ScreenWidth()) ball.px -= (float)ScreenWidth();
+			//if (ball.py < 0) ball.py += (float)ScreenHeight();
+			//if (ball.py >= ScreenHeight()) ball.py -= (float)ScreenHeight();
+
+			// Clamp velocity near zero
+			if (fabs(circleCol.vx * circleCol.vx + circleCol.vy * circleCol.vy) < 0.01f)
+			{
+				circleCol.vx = 0;
+				circleCol.vy = 0;
+			}
+		}
+		// Static collisions
+		for (auto& ball : vectorOfAllColliders)
+		{
+			for (auto& target : vectorOfAllColliders)
+			{
+				if (ball.id != target.id)
+				{
+					if (DoCirclesOverlap(ball.px, ball.py, ball.radius, target.px, target.py, target.radius))
+					{
+						// Collision has occured
+						vectorOfCollidingTwo.push_back({ &ball, &target });
+
+						// Distance between ball centers
+						float fDistance = sqrtf((ball.px - target.px) * (ball.px - target.px) + (ball.py - target.py) * (ball.py - target.py));
+
+						// Calculate displacement required
+						float fOverlap = 0.5f * (fDistance - ball.radius - target.radius);
+
+						// Displace Current Ball away from collision
+						ball.px -= fOverlap * (ball.px - target.px) / fDistance;
+						ball.py -= fOverlap * (ball.py - target.py) / fDistance;
+
+						// Displace Target Ball away from collision
+						target.px += fOverlap * (ball.px - target.px) / fDistance;
+						target.py += fOverlap * (ball.py - target.py) / fDistance;
+					}
+				}
+			}
+		}
+
+		//dynamic collisions
+		for (auto c : vectorOfCollidingTwo)
+		{
+			CircleCollider* b1 = c.first;
+			CircleCollider* b2 = c.second;
+
+			// Distance between balls
+			float fDistance = sqrtf((b1->px - b2->px) * (b1->px - b2->px) + (b1->py - b2->py) * (b1->py - b2->py));
+
+			// Normal
+			float nx = (b2->px - b1->px) / fDistance;
+			float ny = (b2->py - b1->py) / fDistance;
+
+			// Tangent
+			float tx = -ny;
+			float ty = nx;
+
+			// Dot Product Tangent
+			float dpTan1 = b1->vx * tx + b1->vy * ty;
+			float dpTan2 = b2->vx * tx + b2->vy * ty;
+
+			// Dot Product Normal
+			float dpNorm1 = b1->vx * nx + b1->vy * ny;
+			float dpNorm2 = b2->vx * nx + b2->vy * ny;
+
+			// Conservation of momentum in 1D
+			float m1 = (dpNorm1 * (b1->mass - b2->mass) + 2.0f * b2->mass * dpNorm2) / (b1->mass + b2->mass);
+			float m2 = (dpNorm2 * (b2->mass - b1->mass) + 2.0f * b1->mass * dpNorm1) / (b1->mass + b2->mass);
+
+			// Update ball velocities
+			b1->vx = tx * dpTan1 + nx * m1;
+			b1->vy = ty * dpTan1 + ny * m1;
+			b2->vx = tx * dpTan2 + nx * m2;
+			b2->vy = ty * dpTan2 + ny * m2;
+
+		}
+
+		// Draw Balls
+		for (auto circleCol : vectorOfAllColliders)
+		{
+			DrawWireFrameModel(defaultCircleCollider, circleCol.px, circleCol.py, atan2f(circleCol.vy, circleCol.vx), circleCol.radius, olc::WHITE);
+		}
+
+		vectorOfAllColliders.back().px = p1.x;
+		vectorOfAllColliders.back().py = p1.y;
+		DrawWireFrameModel(defaultCircleCollider, vectorOfAllColliders.back().px, vectorOfAllColliders.back().py, atan2f(g1.y, g1.x), 4, olc::BLANK);
+		FillCircle(p1.x, p1.y, 4, olc::WHITE);
+		DrawLine((3.0f * sin(angle) + p1.x), (3.0f * cos(angle) + p1.y), (-3.0f * sin(angle) + p1.x), (-3.0f * cos(angle) + p1.y), olc::MAGENTA);
+
+		// Draw static collisions
+		for (auto c : vectorOfCollidingTwo)
+		{
+			DrawLine(c.first->px, c.first->py, c.second->px, c.second->py, olc::RED);
+		}
+
+		// Draw Cue
+		//if (pSelectedBall != nullptr)
+		//	DrawLine(pSelectedBall->px, pSelectedBall->py, GetMouseX(), GetMouseY(), olc::BLUE);
+
+
+
+
+
+
+
+
+
+
 
 		return true;
 	}
@@ -243,7 +489,7 @@ protected:
 int main()
 {
 	Geo_Destruct application;
-	application.Construct(110, 80, 10, 10, FULLSCREEN, VSYNC);
+	application.Construct(160, 120, 8, 8, FULLSCREEN, VSYNC);
 	application.Start();
 	return 0;
 }
