@@ -968,6 +968,48 @@ namespace olc
 		// Draws a circle located at (x,y) with radius
 		void DrawCircle(int32_t x, int32_t y, int32_t radius, Pixel p = olc::WHITE, uint8_t mask = 0xFF);
 		void DrawCircle(const olc::vi2d& pos, int32_t radius, Pixel p = olc::WHITE, uint8_t mask = 0xFF);
+
+		//Helper Function for drawing which is not existent in olc::PGE
+		void DrawWireFrameModel(const std::vector<std::pair<float, float>>& vecModelCoordinates, float x, float y, float r, float s, olc::Pixel col, int c = 1)
+		{
+			// pair.first = x coordinate
+			// pair.second = y coordinate
+
+			// Create translated model vector of coordinate pairs
+			std::vector<std::pair<float, float>> vecTransformedCoordinates;
+			int verts = vecModelCoordinates.size();
+			vecTransformedCoordinates.resize(verts);
+
+			// Rotate
+			for (int i = 0; i < verts; i++)
+			{
+				vecTransformedCoordinates[i].first = vecModelCoordinates[i].first * cosf(r) - vecModelCoordinates[i].second * sinf(r);
+				vecTransformedCoordinates[i].second = vecModelCoordinates[i].first * sinf(r) + vecModelCoordinates[i].second * cosf(r);
+			}
+
+			// Scale
+			for (int i = 0; i < verts; i++)
+			{
+				vecTransformedCoordinates[i].first = vecTransformedCoordinates[i].first * s;
+				vecTransformedCoordinates[i].second = vecTransformedCoordinates[i].second * s;
+			}
+
+			// Translate
+			for (int i = 0; i < verts; i++)
+			{
+				vecTransformedCoordinates[i].first = vecTransformedCoordinates[i].first + x;
+				vecTransformedCoordinates[i].second = vecTransformedCoordinates[i].second + y;
+			}
+
+			// Draw Closed Polygon
+			for (int i = 0; i < verts + 1; i++)
+			{
+				int j = (i + 1);
+				DrawLine((int)vecTransformedCoordinates[i % verts].first, (int)vecTransformedCoordinates[i % verts].second,
+					(int)vecTransformedCoordinates[j % verts].first, (int)vecTransformedCoordinates[j % verts].second, col);
+
+			}
+		}
 		// Fills a circle located at (x,y) with radius
 		void FillCircle(int32_t x, int32_t y, int32_t radius, Pixel p = olc::WHITE);
 		void FillCircle(const olc::vi2d& pos, int32_t radius, Pixel p = olc::WHITE);

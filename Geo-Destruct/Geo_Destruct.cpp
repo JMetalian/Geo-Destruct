@@ -144,10 +144,10 @@ private:
 	int selectedPointInPath = 0;
 	float fMarker = 0.0f;
 
-
+	
 	vector<pair<float, float>> defaultCircleCollider;
 	vector<CircleCollider> vectorOfAllColliders;
-	//CircleCollider* pSelectedBall = nullptr;
+	CircleCollider* pSelectedBall = nullptr;
 	// Adds a ball to the vector
 	void AddNewCircleCollider(float x, float y, float r = 5.0f)
 	{
@@ -160,46 +160,6 @@ private:
 
 		circleCollider.id = vectorOfAllColliders.size();//In order to uniquely name them.
 		vectorOfAllColliders.emplace_back(circleCollider);
-	}//Helper Function for drawing which is not existent in olc::PGE
-	void DrawWireFrameModel(const std::vector<std::pair<float, float>>& vecModelCoordinates, float x, float y, float r, float s, olc::Pixel col, int c = 1)
-	{
-		// pair.first = x coordinate
-		// pair.second = y coordinate
-
-		// Create translated model vector of coordinate pairs
-		std::vector<std::pair<float, float>> vecTransformedCoordinates;
-		int verts = vecModelCoordinates.size();
-		vecTransformedCoordinates.resize(verts);
-
-		// Rotate
-		for (int i = 0; i < verts; i++)
-		{
-			vecTransformedCoordinates[i].first = vecModelCoordinates[i].first * cosf(r) - vecModelCoordinates[i].second * sinf(r);
-			vecTransformedCoordinates[i].second = vecModelCoordinates[i].first * sinf(r) + vecModelCoordinates[i].second * cosf(r);
-		}
-
-		// Scale
-		for (int i = 0; i < verts; i++)
-		{
-			vecTransformedCoordinates[i].first = vecTransformedCoordinates[i].first * s;
-			vecTransformedCoordinates[i].second = vecTransformedCoordinates[i].second * s;
-		}
-
-		// Translate
-		for (int i = 0; i < verts; i++)
-		{
-			vecTransformedCoordinates[i].first = vecTransformedCoordinates[i].first + x;
-			vecTransformedCoordinates[i].second = vecTransformedCoordinates[i].second + y;
-		}
-
-		// Draw Closed Polygon
-		for (int i = 0; i < verts + 1; i++)
-		{
-			int j = (i + 1);
-			DrawLine((int)vecTransformedCoordinates[i % verts].first, (int)vecTransformedCoordinates[i % verts].second,
-				(int)vecTransformedCoordinates[j % verts].first, (int)vecTransformedCoordinates[j % verts].second, col);
-
-		}
 	}
 
 public:
@@ -220,12 +180,19 @@ protected:
 			defaultCircleCollider.push_back({ cosf(i / (float)(nPoints - 1) * 2.0f * 3.14159f) , sinf(i / (float)(nPoints - 1) * 2.0f * 3.14159f) });
 
 		float radiusForBalls = 3.0f;
-		AddNewCircleCollider(ScreenWidth() / 2, ScreenHeight() / 2 + 20, radiusForBalls);
-		AddNewCircleCollider(ScreenWidth() / 2 + 6, ScreenHeight() / 2 + 20, radiusForBalls);
-		AddNewCircleCollider(ScreenWidth()/2, ScreenHeight()/2+24, radiusForBalls);
-		AddNewCircleCollider(ScreenWidth() / 2+6, ScreenHeight() / 2 + 24, radiusForBalls);
+		AddNewCircleCollider(ScreenWidth() / 2, ScreenHeight() / 2 + 10, radiusForBalls);
+		AddNewCircleCollider(ScreenWidth() / 2 + 6, ScreenHeight() / 2 + 10, radiusForBalls);
+		AddNewCircleCollider(ScreenWidth()/2, ScreenHeight() / 2 + 14, radiusForBalls);
+		AddNewCircleCollider(ScreenWidth() / 2+6, ScreenHeight() / 2 + 14, radiusForBalls);
+		AddNewCircleCollider(ScreenWidth() / 2, ScreenHeight() / 2 + 18, radiusForBalls);
+		AddNewCircleCollider(ScreenWidth() / 2 + 6, ScreenHeight() / 2 + 18, radiusForBalls);
+		AddNewCircleCollider(ScreenWidth() / 2, ScreenHeight() / 2 + 22, radiusForBalls);
+		AddNewCircleCollider(ScreenWidth() / 2 + 6, ScreenHeight() / 2 + 22, radiusForBalls);
+		AddNewCircleCollider(ScreenWidth() / 2, ScreenHeight() / 2 + 26, radiusForBalls);
+		AddNewCircleCollider(ScreenWidth() / 2 + 6, ScreenHeight() / 2 + 26, radiusForBalls);
+		AddNewCircleCollider(ScreenWidth() / 2, ScreenHeight() / 2 + 29, radiusForBalls);
+		AddNewCircleCollider(ScreenWidth() / 2 + 6, ScreenHeight() / 2 + 29, radiusForBalls);
 		AddNewCircleCollider(0, 0, 3.0f); //Player Collider
-
 
 		return true;
 	}
@@ -312,51 +279,51 @@ protected:
 			return fabs((x1 - x2) * (x1 - x2) + (y1 - y2) * (y1 - y2)) <= (r1 + r2) * (r1 + r2);
 		};
 
-		//auto IsPointInCircle = [](float x1, float y1, float r1, float px, float py)
-		//{
-		//	return fabs((x1 - px) * (x1 - px) + (y1 - py) * (y1 - py)) < (r1 * r1);
-		//};
+		auto IsPointInCircle = [](float x1, float y1, float r1, float px, float py)
+		{
+			return fabs((x1 - px) * (x1 - px) + (y1 - py) * (y1 - py)) < (r1 * r1);
+		};
 
-		//if (/*GetMouse(0).bPressed ||*/ GetMouse(1).bPressed)
-		//{
-		//	pSelectedBall = nullptr;
-		//	for (auto& ball : vectorOfAllColliders)
-		//	{
-		//		if (IsPointInCircle(ball.px, ball.py, ball.radius, GetMouseX(), GetMouseY()))
-		//		{
-		//			pSelectedBall = &ball;
-		//			break;
-		//		}
-		//	}
-		//}
+		if (/*GetMouse(0).bPressed ||*/ GetMouse(1).bPressed)
+		{
+			pSelectedBall = nullptr;
+			for (auto& ball : vectorOfAllColliders)
+			{
+				if (IsPointInCircle(ball.px, ball.py, ball.radius, GetMouseX(), GetMouseY()))
+				{
+					pSelectedBall = &ball;
+					break;
+				}
+			}
+		}
+		if (GetMouse(0).bHeld)
+		{
+			if (pSelectedBall != nullptr)
+			{
+				pSelectedBall->px = GetMouseX();
+				pSelectedBall->py = GetMouseY();
+			}
+		}
 
-		//if (GetMouse(0).bHeld)
-		//{
-		//	if (pSelectedBall != nullptr)
-		//	{
-		//		pSelectedBall->px = GetMouseX();
-		//		pSelectedBall->py = GetMouseY();
-		//	}
-		//}
+		if (GetMouse(0).bReleased)
+		{
+			pSelectedBall = nullptr;
+		}
+		
+		if (GetMouse(1).bReleased)
+		{
+			if (pSelectedBall != nullptr)
+			{
+				// Apply velocity
+				pSelectedBall->vx = 5.0f * ((pSelectedBall->px) - (float)GetMouseX());
+				pSelectedBall->vy = 5.0f * ((pSelectedBall->py) - (float)GetMouseY());
+				
+			}
 
-		//if (GetMouse(0).bReleased)
-		//{
-		//	pSelectedBall = nullptr;
-		//}
+			pSelectedBall = nullptr;
+		}
 
-		//if (GetMouse(1).bReleased)
-		//{
-		//	if (pSelectedBall != nullptr)
-		//	{
-		//		// Apply velocity
-		//		pSelectedBall->vx = 5.0f * ((pSelectedBall->px) - (float)GetMouseX());
-		//		pSelectedBall->vy = 5.0f * ((pSelectedBall->py) - (float)GetMouseY());
-		//	}
-
-		//	pSelectedBall = nullptr;
-		//}
 		vector<pair<CircleCollider*, CircleCollider*>> vectorOfCollidingTwo;
-
 		// Update Ball Positions
 		for (auto& circleCol : vectorOfAllColliders)
 		{
@@ -377,7 +344,7 @@ protected:
 			//if (ball.py >= ScreenHeight()) ball.py -= (float)ScreenHeight();
 
 			// Clamp velocity near zero
-			if (fabs(circleCol.vx * circleCol.vx + circleCol.vy * circleCol.vy) < 0.01f)
+			if (circleCol.vx * circleCol.vx + circleCol.vy * circleCol.vy < 0.01f)
 			{
 				circleCol.vx = 0;
 				circleCol.vy = 0;
@@ -456,8 +423,9 @@ protected:
 			DrawWireFrameModel(defaultCircleCollider, circleCol.px, circleCol.py, atan2f(circleCol.vy, circleCol.vx), circleCol.radius, olc::WHITE);
 		}
 
-		vectorOfAllColliders.back().px = p1.x;
-		vectorOfAllColliders.back().py = p1.y;
+		float characterXPosition = vectorOfAllColliders.back().px = p1.x;
+		float characterYPosition = vectorOfAllColliders.back().py = p1.y;
+		
 		DrawWireFrameModel(defaultCircleCollider, vectorOfAllColliders.back().px, vectorOfAllColliders.back().py, atan2f(g1.y, g1.x), 4, olc::BLANK);
 		FillCircle(p1.x, p1.y, 4, olc::WHITE);
 		DrawLine((3.0f * sin(angle) + p1.x), (3.0f * cos(angle) + p1.y), (-3.0f * sin(angle) + p1.x), (-3.0f * cos(angle) + p1.y), olc::MAGENTA);
@@ -469,19 +437,8 @@ protected:
 		}
 
 		// Draw Cue
-		//if (pSelectedBall != nullptr)
-		//	DrawLine(pSelectedBall->px, pSelectedBall->py, GetMouseX(), GetMouseY(), olc::BLUE);
-
-
-
-
-
-
-
-
-
-
-
+		if (pSelectedBall != nullptr)
+			DrawLine(pSelectedBall->px, pSelectedBall->py, GetMouseX(), GetMouseY(), olc::BLUE);
 		return true;
 	}
 };
@@ -489,7 +446,7 @@ protected:
 int main()
 {
 	Geo_Destruct application;
-	application.Construct(160, 120, 8, 8, FULLSCREEN, VSYNC);
+	application.Construct(120, 100, 8, 8, FULLSCREEN, VSYNC);
 	application.Start();
 	return 0;
 }

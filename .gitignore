@@ -5,3 +5,5 @@ Geo-Destruct/Geo-Destruct.vcxproj.filters
 Geo-Destruct/Geo-Destruct.vcxproj.user
 Debug/
 glm/
+.DS_Store
+Geo-Destruct/output
