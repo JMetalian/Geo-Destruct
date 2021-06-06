@@ -137,6 +137,7 @@ struct CircleCollider
 	int id;
 };
 
+
 class Geo_Destruct : public olc::PixelGameEngine
 {
 private:
@@ -194,6 +195,9 @@ protected:
 		AddNewCircleCollider(ScreenWidth() / 2 + 6, ScreenHeight() / 2 + 29, radiusForBalls);
 		AddNewCircleCollider(0, 0, 3.0f); //Player Collider
 
+
+		
+		
 		return true;
 	}
 
@@ -246,7 +250,7 @@ protected:
 			Draw(position.x, position.y);
 		} 
 
-		path.normOfSpline = .0f;
+		//path.normOfSpline = .0f;
 		// Draw Control Points
 		for (int i = 0; i < path.points.size(); i++)
 		{
@@ -266,13 +270,15 @@ protected:
 		}
 		Points p1 = path.GetSplinePoint(offSet, ISLOOPED);
 		Points g1 = path.GetSplineGradient(offSet, ISLOOPED);
-		float angle = atan2(-g1.y, g1.x);
+		float angle = atan2(-g1.y, g1.x);//arctan value of angle (in radian)
+		//cout << angle*180/3.14159265f << endl;
 		//FillCircle(p1.x, p1.y, 3, olc::WHITE);
 		//DrawLine((3.0f * sin(angle) + p1.x), (3.0f * cos(angle) + p1.y), (-3.0f * sin(angle) + p1.x), (-3.0f * cos(angle) + p1.y), olc::MAGENTA);
 
 		//In order to visualize
 		//DrawString(2, 2, to_string(fMarker),olc::WHITE, 1);
 		//DrawString(2, 8, to_string(offSet),olc::WHITE, 1);
+
 
 		auto DoCirclesOverlap = [](float x1, float y1, float r1, float x2, float y2, float r2)
 		{
@@ -328,8 +334,8 @@ protected:
 		for (auto& circleCol : vectorOfAllColliders)
 		{
 			// Add Drag to emulate rolling friction
-			circleCol.ax = -circleCol.vx * 0.8f;
-			circleCol.ay = -circleCol.vy * 0.8f;
+			circleCol.ax = 0.5f *-circleCol.vx;
+			circleCol.ay = 0.5f *-circleCol.vy;
 
 			// Update ball physics
 			circleCol.vx += circleCol.ax * fElapsedTime;
@@ -337,11 +343,11 @@ protected:
 			circleCol.px += circleCol.vx * fElapsedTime;
 			circleCol.py += circleCol.vy * fElapsedTime;
 
-			//// Wrap the balls around screen
-			//if (ball.px < 0) ball.px += (float)ScreenWidth();
-			//if (ball.px >= ScreenWidth()) ball.px -= (float)ScreenWidth();
-			//if (ball.py < 0) ball.py += (float)ScreenHeight();
-			//if (ball.py >= ScreenHeight()) ball.py -= (float)ScreenHeight();
+			// wrap the balls around screen
+			if (circleCol.px < 0) circleCol.px += (float)ScreenWidth();
+			if (circleCol.px >= ScreenWidth()) circleCol.px -= (float)ScreenWidth();
+			if (circleCol.py < 0) circleCol.py += (float)ScreenHeight();
+			if (circleCol.py >= ScreenHeight()) circleCol.py -= (float)ScreenHeight();
 
 			// Clamp velocity near zero
 			if (circleCol.vx * circleCol.vx + circleCol.vy * circleCol.vy < 0.01f)
@@ -425,8 +431,11 @@ protected:
 
 		float characterXPosition = vectorOfAllColliders.back().px = p1.x;
 		float characterYPosition = vectorOfAllColliders.back().py = p1.y;
+		vectorOfAllColliders.back().vx = 1000.0f * fElapsedTime;
+		vectorOfAllColliders.back().vy = 1000.0f * fElapsedTime;
+
 		
-		DrawWireFrameModel(defaultCircleCollider, vectorOfAllColliders.back().px, vectorOfAllColliders.back().py, atan2f(g1.y, g1.x), 4, olc::BLANK);
+		//DrawWireFrameModel(defaultCircleCollider, vectorOfAllColliders.back().px, vectorOfAllColliders.back().py, atan2f(g1.y, g1.x), 4, olc::BLANK);
 		FillCircle(p1.x, p1.y, 4, olc::WHITE);
 		DrawLine((3.0f * sin(angle) + p1.x), (3.0f * cos(angle) + p1.y), (-3.0f * sin(angle) + p1.x), (-3.0f * cos(angle) + p1.y), olc::MAGENTA);
 
