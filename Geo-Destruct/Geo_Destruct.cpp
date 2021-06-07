@@ -133,7 +133,6 @@ struct CircleCollider
 	float ax, ay;
 	float radius;
 	float mass;
-
 	int id;
 };
 
@@ -143,7 +142,7 @@ class Geo_Destruct : public olc::PixelGameEngine
 private:
 	Spline path;
 	int selectedPointInPath = 0;
-	float fMarker = 0.0f;
+	float speedOfAgent = 0.0f;
 
 	
 	vector<pair<float, float>> defaultCircleCollider;
@@ -181,6 +180,8 @@ protected:
 			defaultCircleCollider.push_back({ cosf(i / (float)(nPoints - 1) * 2.0f * 3.14159f) , sinf(i / (float)(nPoints - 1) * 2.0f * 3.14159f) });
 
 		float radiusForBalls = 3.0f;
+		AddNewCircleCollider(ScreenWidth() / 2, ScreenHeight() / 2 + 5, radiusForBalls);
+		AddNewCircleCollider(ScreenWidth() / 2 + 6, ScreenHeight() / 2 + 5, radiusForBalls);
 		AddNewCircleCollider(ScreenWidth() / 2, ScreenHeight() / 2 + 10, radiusForBalls);
 		AddNewCircleCollider(ScreenWidth() / 2 + 6, ScreenHeight() / 2 + 10, radiusForBalls);
 		AddNewCircleCollider(ScreenWidth()/2, ScreenHeight() / 2 + 14, radiusForBalls);
@@ -235,19 +236,7 @@ protected:
 		{	//Control the selected point
 			path.points[selectedPointInPath].y += 30.0f * fElapsedTime;
 		}
-		// //Move the character on the spline by pressing "W".
-		// if (GetKey(olc::Key::W).bHeld)
-		// {
-		// 	fMarker += 50.0f * fElapsedTime;
-		// }
-		// if (fMarker >= (float)path.normOfSpline)
-		// {
-		// 	fMarker -= (float)path.normOfSpline;
-		// }
-		// if (fMarker < 0.0f)
-		// {
-		// 	fMarker += (float)path.normOfSpline;
-		// }
+
 		// Draw Spline
 		for (float t = 0; t < (float)(path.points.size()-1); t += 0.005f)
 		{
@@ -255,7 +244,6 @@ protected:
 			Draw(position.x, position.y);
 		} 
 
-		//path.normOfSpline = .0f;
 		// Draw Control Points
 		for (int i = 0; i < path.points.size(); i++)
 		{
@@ -267,73 +255,24 @@ protected:
 		DrawLine(path.points[selectedPointInPath].x - 1, path.points[selectedPointInPath].y - 1, path.points[selectedPointInPath].x + 2, path.points[selectedPointInPath].y + 2, olc::GREEN);
 			
 		// Gradient demonstrater
-		float offSet = path.NormalOffSet(fMarker);
+		float offSet = path.NormalOffSet(speedOfAgent);
 		if (offSet >=(float)(path.points.size() - 1))
 		{
 			offSet = (float)path.points.size() - 1.0f;
-			fMarker-=50.0f*fElapsedTime;
+			speedOfAgent-=50.0f*fElapsedTime;
 		}
 		Points p1 = path.GetSplinePoint(offSet, ISLOOPED);
 		Points g1 = path.GetSplineGradient(offSet, ISLOOPED);
 		float angle = atan2(-g1.y, g1.x);//arctan value of angle (in radian)
-		//FillCircle(p1.x, p1.y, 3, olc::WHITE);
-		//DrawLine((3.0f * sin(angle) + p1.x), (3.0f * cos(angle) + p1.y), (-3.0f * sin(angle) + p1.x), (-3.0f * cos(angle) + p1.y), olc::MAGENTA);
 
-		//In order to visualize
-		//DrawString(2, 2, to_string(fMarker),olc::WHITE, 1);
-		//DrawString(2, 8, to_string(offSet),olc::WHITE, 1);
-
-
-		auto DoCirclesOverlap = [](float x1, float y1, float r1, float x2, float y2, float r2)
+		auto AreCirclesOverlapping = [](float x1, float y1, float r1, float x2, float y2, float r2)
 		{
 			return fabs((x1 - x2) * (x1 - x2) + (y1 - y2) * (y1 - y2)) <= (r1 + r2) * (r1 + r2);
 		};
 
-		// auto IsPointInCircle = [](float x1, float y1, float r1, float px, float py)
-		// {
-		// 	return fabs((x1 - px) * (x1 - px) + (y1 - py) * (y1 - py)) < (r1 * r1);
-		// };
-
-		// if (/*GetMouse(0).bPressed ||*/ GetMouse(1).bPressed)
-		// {
-		// 	pSelectedBall = nullptr;
-		// 	for (auto& ball : vectorOfAllColliders)
-		// 	{
-		// 		if (IsPointInCircle(ball.px, ball.py, ball.radius, GetMouseX(), GetMouseY()))
-		// 		{
-		// 			pSelectedBall = &ball;
-		// 			break;
-		// 		}
-		// 	}
-		// }
 		float characterXPosition = vectorOfAllColliders.back().px = p1.x;
 		float characterYPosition = vectorOfAllColliders.back().py = p1.y;
-		// if (GetMouse(0).bHeld)
-		// {
-		// 	if (pSelectedBall != nullptr)
-		// 	{
-		// 		pSelectedBall->px = GetMouseX();
-		// 		pSelectedBall->py = GetMouseY();
-		// 	}
-		// }
 
-		// if (GetMouse(0).bReleased)
-		// {
-		// 	pSelectedBall = nullptr;
-		// }
-		
-		// if (GetMouse(1).bReleased)
-		// {
-		// 	if (pSelectedBall != nullptr)
-		// 	{
-		// 		// Apply velocity
-		// 		pSelectedBall->vx = 5.0f * ((pSelectedBall->px) - (float)GetMouseX());
-		// 		pSelectedBall->vy = 5.0f * ((pSelectedBall->py) - (float)GetMouseY());
-				
-		// 	}
-
-		// 	pSelectedBall = nullptr;
-		// }
 		//Move the character on the spline by pressing "W".
 		if(GetKey(olc::Key::W).bPressed)
 		{
@@ -349,52 +288,44 @@ protected:
 		}
 		if (GetKey(olc::Key::W).bHeld)
 		{
-			
-			fMarker += 50.0f * fElapsedTime;
-			if (pSelectedBall != nullptr)
-			{
-				// Apply velocity
-				pSelectedBall->vx = 10.0f * (pSelectedBall->px);
-				pSelectedBall->vy = 10.0f * (pSelectedBall->py);
-				
-			}
-
-			pSelectedBall = nullptr;
+			speedOfAgent += 50.0f * fElapsedTime;
 		}
 		if(GetKey(olc::Key::W).bReleased)
 		{
+			pSelectedBall->vx = 0;
+			pSelectedBall->vy = 0;
 			pSelectedBall = nullptr;
 
 		}
-		if (fMarker >= (float)path.normOfSpline)
+		if (speedOfAgent >= (float)path.normOfSpline)
 		{
-			fMarker -= (float)path.normOfSpline;
+			speedOfAgent -= (float)path.normOfSpline;
 		}
-		if (fMarker < 0.0f)
+		if (speedOfAgent < 0.0f)
 		{
-			fMarker += (float)path.normOfSpline;
+			speedOfAgent += (float)path.normOfSpline;
 		}
 		vector<pair<CircleCollider*, CircleCollider*>> vectorOfCollidingTwo;
-		// Update Ball Positions
+		// Update Circle Positions
 		for (auto& circleCol : vectorOfAllColliders)
 		{
-			// Add Drag to emulate rolling friction
+			//Drag for slowing down
 			circleCol.ax = 0.5f *-circleCol.vx;
 			circleCol.ay = 0.5f *-circleCol.vy;
 
-			// Update ball physics
+			//Circle velocity, position update
 			circleCol.vx += circleCol.ax * fElapsedTime;
 			circleCol.vy += circleCol.ay * fElapsedTime;
 			circleCol.px += circleCol.vx * fElapsedTime;
 			circleCol.py += circleCol.vy * fElapsedTime;
 
-			// wrap the balls around screen
+			//Circles may come up from other sides of the screen
 			if (circleCol.px < 0) circleCol.px += (float)ScreenWidth();
 			if (circleCol.px >= ScreenWidth()) circleCol.px -= (float)ScreenWidth();
 			if (circleCol.py < 0) circleCol.py += (float)ScreenHeight();
 			if (circleCol.py >= ScreenHeight()) circleCol.py -= (float)ScreenHeight();
 
-			// Clamp velocity near zero
+			//Set velocity if it is too low 
 			if (circleCol.vx * circleCol.vx + circleCol.vy * circleCol.vy < 0.01f)
 			{
 				circleCol.vx = 0;
@@ -402,42 +333,48 @@ protected:
 			}
 		}
 		// Static collisions
-		for (auto& ball : vectorOfAllColliders)
+		for (auto& circle : vectorOfAllColliders)
 		{
-			for (auto& target : vectorOfAllColliders)
+			for (auto& secondCircle : vectorOfAllColliders)
 			{
-				if (ball.id != target.id)
+				if (circle.id != secondCircle.id)
 				{
-					if (DoCirclesOverlap(ball.px, ball.py, ball.radius, target.px, target.py, target.radius))
+					if (AreCirclesOverlapping(circle.px, circle.py, circle.radius, secondCircle.px, secondCircle.py, secondCircle.radius))
 					{
 						// Collision has occured
-						vectorOfCollidingTwo.push_back({ &ball, &target });
+						vectorOfCollidingTwo.push_back({ &circle, &secondCircle });
+						if (pSelectedBall != nullptr)
+						{
+							// Apply velocity
+							pSelectedBall->vx = 100.0f * cosf(angle);
+							pSelectedBall->vy = 100.0f * -sinf(angle);
 
+						}
 						// Distance between circle centers
-						float distanceDifferenceBetweenCircles = sqrtf((ball.px - target.px) * (ball.px - target.px) + (ball.py - target.py) * (ball.py - target.py));
+						float distanceDifferenceBetweenCircles = sqrtf((circle.px - secondCircle.px) * (circle.px - secondCircle.px) + (circle.py - secondCircle.py) * (circle.py - secondCircle.py));
 
 						// Calculate displacement required
-						float fOverlap = 0.5f * (distanceDifferenceBetweenCircles - ball.radius - target.radius);
+						float requiredDisplacement = 0.5f * (distanceDifferenceBetweenCircles - circle.radius - secondCircle.radius);
 
-						// Displace Current Ball away from collision
-						ball.px -= fOverlap * (ball.px - target.px) / distanceDifferenceBetweenCircles;
-						ball.py -= fOverlap * (ball.py - target.py) / distanceDifferenceBetweenCircles;
+						// Displace first circle away from collision
+						circle.px -= requiredDisplacement * (circle.px - secondCircle.px) / distanceDifferenceBetweenCircles;
+						circle.py -= requiredDisplacement * (circle.py - secondCircle.py) / distanceDifferenceBetweenCircles;
 
-						// Displace Target Ball away from collision
-						target.px += fOverlap * (ball.px - target.px) / distanceDifferenceBetweenCircles;
-						target.py += fOverlap * (ball.py - target.py) / distanceDifferenceBetweenCircles;
+						// Displace second circle away from collision
+						secondCircle.px += requiredDisplacement * (circle.px - secondCircle.px) / distanceDifferenceBetweenCircles;
+						secondCircle.py += requiredDisplacement * (circle.py - secondCircle.py) / distanceDifferenceBetweenCircles;
 					}
 				}
 			}
 		}
 
-		//dynamic collisions
+		//Dynamic collisions
 		for (auto c : vectorOfCollidingTwo)
 		{
 			CircleCollider* firstCircle = c.first;
 			CircleCollider* secondCircle = c.second;
 
-			// Distance between balls
+			// Distance between circles
 			float distanceDifferenceBetweenCircles = sqrtf((firstCircle->px - secondCircle->px) * (firstCircle->px - secondCircle->px) + (firstCircle->py - secondCircle->py) * (firstCircle->py - secondCircle->py));
 
 			// Normal. One unit vector
@@ -456,11 +393,11 @@ protected:
 			float scaleVelocityofFirstCircleInNormalDirection = firstCircle->vx * unitNormalX + firstCircle->vy * unitNormalY;
 			float scaleVelocityofSecondCircleInNormalDirection = secondCircle->vx * unitNormalX + secondCircle->vy * unitNormalY;
 
-			// Conservation of momentum in 1D. Normal velocities of circles. One for first after collision and one for second after collision.
+			// Conservation of momentum formula. Normal velocities of circles. One for first after collision and one for second after collision.
 			float afterCollisionNormalVelocityVectorOfFirstCircle = (scaleVelocityofFirstCircleInNormalDirection * (firstCircle->mass - secondCircle->mass) + 2.0f * secondCircle->mass * scaleVelocityofSecondCircleInNormalDirection) / (firstCircle->mass + secondCircle->mass);
 			float afterCollisionNormalVelocityVectorOfSecondCircle = (scaleVelocityofSecondCircleInNormalDirection * (secondCircle->mass - firstCircle->mass) + 2.0f * firstCircle->mass * scaleVelocityofFirstCircleInNormalDirection) / (firstCircle->mass + secondCircle->mass);
 
-			// Update ball velocities
+			// Update circle velocities
 			firstCircle->vx = (unitTangentX * scalerVelocityOfFirstCircleInTangentialDirection) + (unitNormalX * afterCollisionNormalVelocityVectorOfFirstCircle);
 			firstCircle->vy = (unitTangentY * scalerVelocityOfFirstCircleInTangentialDirection) + (unitNormalY * afterCollisionNormalVelocityVectorOfFirstCircle);
 			secondCircle->vx = (unitTangentX * scalerVelocityOfSecondCircleInTangentialDirection) + (unitNormalX * afterCollisionNormalVelocityVectorOfSecondCircle);
@@ -468,32 +405,22 @@ protected:
 
 		}
 
-
-		// Draw Balls
+		// Draw circles
 		for (auto circleCol : vectorOfAllColliders)
 		{
 			DrawWireFrameModel(defaultCircleCollider, circleCol.px, circleCol.py, atan2f(circleCol.vy, circleCol.vx), circleCol.radius, olc::WHITE);
 		}
-
-		//float characterXPosition = vectorOfAllColliders.back().px = p1.x;
-		//float characterYPosition = vectorOfAllColliders.back().py = p1.y;
-		//vectorOfAllColliders.back().vx = 1000.0f * fElapsedTime;
-		//vectorOfAllColliders.back().vy = 1000.0f * fElapsedTime;
-
 		
-		//DrawWireFrameModel(defaultCircleCollider, vectorOfAllColliders.back().px, vectorOfAllColliders.back().py, atan2f(g1.y, g1.x), 4, olc::BLANK);
 		FillCircle(p1.x, p1.y, 4, olc::WHITE);
-		DrawLine((3.0f * sin(angle) + p1.x), (3.0f * cos(angle) + p1.y), (-3.0f * sin(angle) + p1.x), (-3.0f * cos(angle) + p1.y), olc::MAGENTA);
+		DrawLine((4.0f * sin(angle) + p1.x), (4.0f * cos(angle) + p1.y), (-4.0f * sin(angle) + p1.x), (-4.0f * cos(angle) + p1.y), olc::MAGENTA);
 
-		// Draw static collisions
+		// Draw collisions
 		for (auto c : vectorOfCollidingTwo)
 		{
 			DrawLine(c.first->px, c.first->py, c.second->px, c.second->py, olc::RED);
 		}
-
-		// Draw Cue
-		if (pSelectedBall != nullptr)
-			DrawLine(pSelectedBall->px, pSelectedBall->py, GetMouseX(), GetMouseY(), olc::BLUE);
+		
+		//DrawLine(10.0f * cosf(angle) + p1.x, 10.0f *-sinf(angle) + p1.y,-10.0f * cosf(angle) + p1.x, -10.0f * -sinf(angle) + p1.y,olc::BLUE);
 		return true;
 	}
 };
@@ -501,7 +428,7 @@ protected:
 int main()
 {
 	Geo_Destruct application;
-	application.Construct(120, 100, 8, 8, FULLSCREEN, VSYNC);
+	application.Construct(160, 120, 8, 8, FULLSCREEN, VSYNC);
 	application.Start();
 	return 0;
 }
