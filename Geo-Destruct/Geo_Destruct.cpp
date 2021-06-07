@@ -194,10 +194,6 @@ protected:
 		AddNewCircleCollider(ScreenWidth() / 2, ScreenHeight() / 2 + 29, radiusForBalls);
 		AddNewCircleCollider(ScreenWidth() / 2 + 6, ScreenHeight() / 2 + 29, radiusForBalls);
 		AddNewCircleCollider(0, 0, 3.0f); //Player Collider
-
-
-		
-		
 		return true;
 	}
 
@@ -221,28 +217,37 @@ protected:
 			if (selectedPointInPath < 0)
 				selectedPointInPath = path.points.size() - 1;
 		}
-		if (GetKey(olc::Key::LEFT).bHeld)//Control the selected point
+		if (GetKey(olc::Key::LEFT).bHeld)
+		{	//Control the selected point
 			path.points[selectedPointInPath].x -= 30.0f * fElapsedTime;
+		}
 
-		if (GetKey(olc::Key::RIGHT).bHeld)//Control the selected point
+		if (GetKey(olc::Key::RIGHT).bHeld)
+		{	//Control the selected point
 			path.points[selectedPointInPath].x += 30.0f * fElapsedTime;
+		}
 
-		if (GetKey(olc::Key::UP).bHeld)//Control the selected point
+		if (GetKey(olc::Key::UP).bHeld)
+		{	//Control the selected point
 			path.points[selectedPointInPath].y -= 30.0f * fElapsedTime;
-
-		if (GetKey(olc::Key::DOWN).bHeld)//Control the selected point
+		}
+		if (GetKey(olc::Key::DOWN).bHeld)
+		{	//Control the selected point
 			path.points[selectedPointInPath].y += 30.0f * fElapsedTime;
-
-		//Move the character on the spline by pressing "W".
-		if (GetKey(olc::Key::W).bHeld)
-			fMarker += 50.0f * fElapsedTime;
-
-		if (fMarker >= (float)path.normOfSpline)
-			fMarker -= (float)path.normOfSpline;
-
-		if (fMarker < 0.0f)
-			fMarker += (float)path.normOfSpline;
-
+		}
+		// //Move the character on the spline by pressing "W".
+		// if (GetKey(olc::Key::W).bHeld)
+		// {
+		// 	fMarker += 50.0f * fElapsedTime;
+		// }
+		// if (fMarker >= (float)path.normOfSpline)
+		// {
+		// 	fMarker -= (float)path.normOfSpline;
+		// }
+		// if (fMarker < 0.0f)
+		// {
+		// 	fMarker += (float)path.normOfSpline;
+		// }
 		// Draw Spline
 		for (float t = 0; t < (float)(path.points.size()-1); t += 0.005f)
 		{
@@ -258,8 +263,8 @@ protected:
 			DrawCircle(path.points[i].x,path.points[i].y, 2, olc::WHITE);
 		}
 
-		// Highlight controllers
-		DrawLine(path.points[selectedPointInPath].x - 1, path.points[selectedPointInPath].y - 1, path.points[selectedPointInPath].x + 2, path.points[selectedPointInPath].y + 2, olc::RED);
+		// Display controllers
+		DrawLine(path.points[selectedPointInPath].x - 1, path.points[selectedPointInPath].y - 1, path.points[selectedPointInPath].x + 2, path.points[selectedPointInPath].y + 2, olc::GREEN);
 			
 		// Gradient demonstrater
 		float offSet = path.NormalOffSet(fMarker);
@@ -271,7 +276,6 @@ protected:
 		Points p1 = path.GetSplinePoint(offSet, ISLOOPED);
 		Points g1 = path.GetSplineGradient(offSet, ISLOOPED);
 		float angle = atan2(-g1.y, g1.x);//arctan value of angle (in radian)
-		//cout << angle*180/3.14159265f << endl;
 		//FillCircle(p1.x, p1.y, 3, olc::WHITE);
 		//DrawLine((3.0f * sin(angle) + p1.x), (3.0f * cos(angle) + p1.y), (-3.0f * sin(angle) + p1.x), (-3.0f * cos(angle) + p1.y), olc::MAGENTA);
 
@@ -285,50 +289,91 @@ protected:
 			return fabs((x1 - x2) * (x1 - x2) + (y1 - y2) * (y1 - y2)) <= (r1 + r2) * (r1 + r2);
 		};
 
-		auto IsPointInCircle = [](float x1, float y1, float r1, float px, float py)
-		{
-			return fabs((x1 - px) * (x1 - px) + (y1 - py) * (y1 - py)) < (r1 * r1);
-		};
+		// auto IsPointInCircle = [](float x1, float y1, float r1, float px, float py)
+		// {
+		// 	return fabs((x1 - px) * (x1 - px) + (y1 - py) * (y1 - py)) < (r1 * r1);
+		// };
 
-		if (/*GetMouse(0).bPressed ||*/ GetMouse(1).bPressed)
+		// if (/*GetMouse(0).bPressed ||*/ GetMouse(1).bPressed)
+		// {
+		// 	pSelectedBall = nullptr;
+		// 	for (auto& ball : vectorOfAllColliders)
+		// 	{
+		// 		if (IsPointInCircle(ball.px, ball.py, ball.radius, GetMouseX(), GetMouseY()))
+		// 		{
+		// 			pSelectedBall = &ball;
+		// 			break;
+		// 		}
+		// 	}
+		// }
+		float characterXPosition = vectorOfAllColliders.back().px = p1.x;
+		float characterYPosition = vectorOfAllColliders.back().py = p1.y;
+		// if (GetMouse(0).bHeld)
+		// {
+		// 	if (pSelectedBall != nullptr)
+		// 	{
+		// 		pSelectedBall->px = GetMouseX();
+		// 		pSelectedBall->py = GetMouseY();
+		// 	}
+		// }
+
+		// if (GetMouse(0).bReleased)
+		// {
+		// 	pSelectedBall = nullptr;
+		// }
+		
+		// if (GetMouse(1).bReleased)
+		// {
+		// 	if (pSelectedBall != nullptr)
+		// 	{
+		// 		// Apply velocity
+		// 		pSelectedBall->vx = 5.0f * ((pSelectedBall->px) - (float)GetMouseX());
+		// 		pSelectedBall->vy = 5.0f * ((pSelectedBall->py) - (float)GetMouseY());
+				
+		// 	}
+
+		// 	pSelectedBall = nullptr;
+		// }
+		//Move the character on the spline by pressing "W".
+		if(GetKey(olc::Key::W).bPressed)
 		{
 			pSelectedBall = nullptr;
-			for (auto& ball : vectorOfAllColliders)
+			for (auto& circle : vectorOfAllColliders)
 			{
-				if (IsPointInCircle(ball.px, ball.py, ball.radius, GetMouseX(), GetMouseY()))
+				if (circle.px==p1.x || circle.py==p1.y)
 				{
-					pSelectedBall = &ball;
+					pSelectedBall = &circle;
 					break;
 				}
 			}
 		}
-		if (GetMouse(0).bHeld)
+		if (GetKey(olc::Key::W).bHeld)
 		{
-			if (pSelectedBall != nullptr)
-			{
-				pSelectedBall->px = GetMouseX();
-				pSelectedBall->py = GetMouseY();
-			}
-		}
-
-		if (GetMouse(0).bReleased)
-		{
-			pSelectedBall = nullptr;
-		}
-		
-		if (GetMouse(1).bReleased)
-		{
+			
+			fMarker += 50.0f * fElapsedTime;
 			if (pSelectedBall != nullptr)
 			{
 				// Apply velocity
-				pSelectedBall->vx = 5.0f * ((pSelectedBall->px) - (float)GetMouseX());
-				pSelectedBall->vy = 5.0f * ((pSelectedBall->py) - (float)GetMouseY());
+				pSelectedBall->vx = 10.0f * (pSelectedBall->px);
+				pSelectedBall->vy = 10.0f * (pSelectedBall->py);
 				
 			}
 
 			pSelectedBall = nullptr;
 		}
+		if(GetKey(olc::Key::W).bReleased)
+		{
+			pSelectedBall = nullptr;
 
+		}
+		if (fMarker >= (float)path.normOfSpline)
+		{
+			fMarker -= (float)path.normOfSpline;
+		}
+		if (fMarker < 0.0f)
+		{
+			fMarker += (float)path.normOfSpline;
+		}
 		vector<pair<CircleCollider*, CircleCollider*>> vectorOfCollidingTwo;
 		// Update Ball Positions
 		for (auto& circleCol : vectorOfAllColliders)
@@ -368,19 +413,19 @@ protected:
 						// Collision has occured
 						vectorOfCollidingTwo.push_back({ &ball, &target });
 
-						// Distance between ball centers
-						float fDistance = sqrtf((ball.px - target.px) * (ball.px - target.px) + (ball.py - target.py) * (ball.py - target.py));
+						// Distance between circle centers
+						float distanceDifferenceBetweenCircles = sqrtf((ball.px - target.px) * (ball.px - target.px) + (ball.py - target.py) * (ball.py - target.py));
 
 						// Calculate displacement required
-						float fOverlap = 0.5f * (fDistance - ball.radius - target.radius);
+						float fOverlap = 0.5f * (distanceDifferenceBetweenCircles - ball.radius - target.radius);
 
 						// Displace Current Ball away from collision
-						ball.px -= fOverlap * (ball.px - target.px) / fDistance;
-						ball.py -= fOverlap * (ball.py - target.py) / fDistance;
+						ball.px -= fOverlap * (ball.px - target.px) / distanceDifferenceBetweenCircles;
+						ball.py -= fOverlap * (ball.py - target.py) / distanceDifferenceBetweenCircles;
 
 						// Displace Target Ball away from collision
-						target.px += fOverlap * (ball.px - target.px) / fDistance;
-						target.py += fOverlap * (ball.py - target.py) / fDistance;
+						target.px += fOverlap * (ball.px - target.px) / distanceDifferenceBetweenCircles;
+						target.py += fOverlap * (ball.py - target.py) / distanceDifferenceBetweenCircles;
 					}
 				}
 			}
@@ -389,39 +434,40 @@ protected:
 		//dynamic collisions
 		for (auto c : vectorOfCollidingTwo)
 		{
-			CircleCollider* b1 = c.first;
-			CircleCollider* b2 = c.second;
+			CircleCollider* firstCircle = c.first;
+			CircleCollider* secondCircle = c.second;
 
 			// Distance between balls
-			float fDistance = sqrtf((b1->px - b2->px) * (b1->px - b2->px) + (b1->py - b2->py) * (b1->py - b2->py));
+			float distanceDifferenceBetweenCircles = sqrtf((firstCircle->px - secondCircle->px) * (firstCircle->px - secondCircle->px) + (firstCircle->py - secondCircle->py) * (firstCircle->py - secondCircle->py));
 
-			// Normal
-			float nx = (b2->px - b1->px) / fDistance;
-			float ny = (b2->py - b1->py) / fDistance;
+			// Normal. One unit vector
+			float unitNormalX = (secondCircle->px - firstCircle->px) / distanceDifferenceBetweenCircles;
+			float unitNormalY = (secondCircle->py - firstCircle->py) / distanceDifferenceBetweenCircles;
 
-			// Tangent
-			float tx = -ny;
-			float ty = nx;
+			// Tangent. One tangent vector
+			float unitTangentX = -unitNormalY;
+			float unitTangentY = unitNormalX;
 
-			// Dot Product Tangent
-			float dpTan1 = b1->vx * tx + b1->vy * ty;
-			float dpTan2 = b2->vx * tx + b2->vy * ty;
+			// Dot Product Tangent. Two scaler tangent value. One for first, one for second.
+			float scalerVelocityOfFirstCircleInTangentialDirection = firstCircle->vx * unitTangentX + firstCircle->vy * unitTangentY;
+			float scalerVelocityOfSecondCircleInTangentialDirection = secondCircle->vx * unitTangentX + secondCircle->vy * unitTangentY;
 
-			// Dot Product Normal
-			float dpNorm1 = b1->vx * nx + b1->vy * ny;
-			float dpNorm2 = b2->vx * nx + b2->vy * ny;
+			// Dot Product Normal. Two scaler normal value. One for first, one for second.
+			float scaleVelocityofFirstCircleInNormalDirection = firstCircle->vx * unitNormalX + firstCircle->vy * unitNormalY;
+			float scaleVelocityofSecondCircleInNormalDirection = secondCircle->vx * unitNormalX + secondCircle->vy * unitNormalY;
 
-			// Conservation of momentum in 1D
-			float m1 = (dpNorm1 * (b1->mass - b2->mass) + 2.0f * b2->mass * dpNorm2) / (b1->mass + b2->mass);
-			float m2 = (dpNorm2 * (b2->mass - b1->mass) + 2.0f * b1->mass * dpNorm1) / (b1->mass + b2->mass);
+			// Conservation of momentum in 1D. Normal velocities of circles. One for first after collision and one for second after collision.
+			float afterCollisionNormalVelocityVectorOfFirstCircle = (scaleVelocityofFirstCircleInNormalDirection * (firstCircle->mass - secondCircle->mass) + 2.0f * secondCircle->mass * scaleVelocityofSecondCircleInNormalDirection) / (firstCircle->mass + secondCircle->mass);
+			float afterCollisionNormalVelocityVectorOfSecondCircle = (scaleVelocityofSecondCircleInNormalDirection * (secondCircle->mass - firstCircle->mass) + 2.0f * firstCircle->mass * scaleVelocityofFirstCircleInNormalDirection) / (firstCircle->mass + secondCircle->mass);
 
 			// Update ball velocities
-			b1->vx = tx * dpTan1 + nx * m1;
-			b1->vy = ty * dpTan1 + ny * m1;
-			b2->vx = tx * dpTan2 + nx * m2;
-			b2->vy = ty * dpTan2 + ny * m2;
+			firstCircle->vx = (unitTangentX * scalerVelocityOfFirstCircleInTangentialDirection) + (unitNormalX * afterCollisionNormalVelocityVectorOfFirstCircle);
+			firstCircle->vy = (unitTangentY * scalerVelocityOfFirstCircleInTangentialDirection) + (unitNormalY * afterCollisionNormalVelocityVectorOfFirstCircle);
+			secondCircle->vx = (unitTangentX * scalerVelocityOfSecondCircleInTangentialDirection) + (unitNormalX * afterCollisionNormalVelocityVectorOfSecondCircle);
+			secondCircle->vy = (unitTangentY * scalerVelocityOfSecondCircleInTangentialDirection) + (unitNormalY * afterCollisionNormalVelocityVectorOfSecondCircle);
 
 		}
+
 
 		// Draw Balls
 		for (auto circleCol : vectorOfAllColliders)
@@ -429,10 +475,10 @@ protected:
 			DrawWireFrameModel(defaultCircleCollider, circleCol.px, circleCol.py, atan2f(circleCol.vy, circleCol.vx), circleCol.radius, olc::WHITE);
 		}
 
-		float characterXPosition = vectorOfAllColliders.back().px = p1.x;
-		float characterYPosition = vectorOfAllColliders.back().py = p1.y;
-		vectorOfAllColliders.back().vx = 1000.0f * fElapsedTime;
-		vectorOfAllColliders.back().vy = 1000.0f * fElapsedTime;
+		//float characterXPosition = vectorOfAllColliders.back().px = p1.x;
+		//float characterYPosition = vectorOfAllColliders.back().py = p1.y;
+		//vectorOfAllColliders.back().vx = 1000.0f * fElapsedTime;
+		//vectorOfAllColliders.back().vy = 1000.0f * fElapsedTime;
 
 		
 		//DrawWireFrameModel(defaultCircleCollider, vectorOfAllColliders.back().px, vectorOfAllColliders.back().py, atan2f(g1.y, g1.x), 4, olc::BLANK);
