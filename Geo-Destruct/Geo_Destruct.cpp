@@ -144,7 +144,7 @@ private:
 	int selectedPointInPath = 0;
 	float speedOfAgent = 0.0f;
 
-
+	/*----------------------------------------*/
 	float fSliderValue = 50.0f;//Minimum 50
 	void IncrementSlider() 
 	{
@@ -167,7 +167,7 @@ private:
 		return fSliderValue;
 	}
 
-
+	/*------------------------------------------*/
 	vector<pair<float, float>> defaultCircleCollider;
 	vector<CircleCollider> vectorOfAllColliders;
 	CircleCollider* pSelecterCircle = nullptr;
@@ -232,10 +232,12 @@ protected:
 		DrawString(ScreenWidth()/2-50,ScreenHeight()/2-50,"GEO-DESTRUCT",olc::WHITE,1);
 
 		// Input Handling
+		//Speed Control For Character
 		if (GetKey(olc::A).bHeld)
 		{
 			DecrementSlider();
 		}
+		//Speed Control For Character
 		if (GetKey(olc::D).bHeld) 
 		{
 			IncrementSlider();
@@ -296,7 +298,7 @@ protected:
 		if (offSet >=(float)(path.points.size() - 1))
 		{
 			offSet = (float)path.points.size() - 1.0f;
-			speedOfAgent-=/*50.0f*/fSliderValue *fElapsedTime;
+			speedOfAgent-=fSliderValue *fElapsedTime;
 		}
 		Points p1 = path.GetSplinePoint(offSet, ISLOOPED);
 		Points g1 = path.GetSplineGradient(offSet, ISLOOPED);
@@ -307,19 +309,17 @@ protected:
 		//FillRect(50, 50, 100, 10, olc::WHITE);
 		//FillRect(50, 50, 70, 1, olc::WHITE);
 		//FillRect(110, 10, 20
-		//DrawString(ScreenWidth()/2+5,ScreenHeight()/2-40,"Speed",olc::WHITE,1);
-		FillRect(ScreenWidth()/2+30, ScreenHeight()/2+45, 20,1);
-
+		FillRect(ScreenWidth()/2+30, ScreenHeight()/2+40, 25,1);
 		//Slider Button
-		int positionOfButtonX = (int)((GetSliderValue() - 50.0f) * 2.0f); //TODO
-		FillRect(50 + positionOfButtonX - 2, 40, 4, 30, olc::RED);
-		FillRect(50 + positionOfButtonX - 2, ScreenHeight()/2+30, 4, 2, olc::RED);
+		int positionOfButtonX = (int)((GetSliderValue() - 50.0f)*.5f); //TODO
+		FillRect(ScreenWidth() / 2 + 30 + positionOfButtonX, ScreenHeight() / 2 + 39, 1, 3, olc::RED);
+
 		/*-------------------------------------------------------------------------------------------*/
 		auto AreCirclesOverlappingWithEachOther = [](float x1, float y1, float r1, float x2, float y2, float r2)
 		{
 			return fabs((x1 - x2) * (x1 - x2) + (y1 - y2) * (y1 - y2)) <= (r1 + r2) * (r1 + r2);
 		};
-
+		//Follow the Magenta-lined agent.
 		float characterXPosition = vectorOfAllColliders.back().px = p1.x;
 		float characterYPosition = vectorOfAllColliders.back().py = p1.y;
 
@@ -328,7 +328,7 @@ protected:
 		{
 			pSelecterCircle = nullptr;
 			for (auto& circle : vectorOfAllColliders)
-			{
+			{	//Set the collider to "Magenta-lined" agent.
 				if (circle.px==p1.x || circle.py==p1.y)
 				{
 					pSelecterCircle = &circle;
@@ -336,6 +336,7 @@ protected:
 				}
 			}
 		}
+		//Give speed to "Magenta-lined agent"
 		if (GetKey(olc::Key::W).bHeld)
 		{
 			speedOfAgent += /*50.0f*/fSliderValue * fElapsedTime;
@@ -405,12 +406,13 @@ protected:
 					{
 						// Collision has occured
 						vectorOfCollidingTwo.push_back({&circle, &secondCircle});
+
+						//Give velocity to collider
 						if (pSelecterCircle != nullptr)
 						{
 							// Simulate the collider's velocity which is behind the agent. Rotate collider according to normal vector of agent.
 							pSelecterCircle->vx = speedOfAgent * cosf(angle);
 							pSelecterCircle->vy = speedOfAgent * -sinf(angle);
-
 						}
 						// Distance between circle centers
 						float distanceDifferenceBetweenCircles = sqrtf((circle.px - secondCircle.px) * (circle.px - secondCircle.px) + (circle.py - secondCircle.py) * (circle.py - secondCircle.py));
