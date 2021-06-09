@@ -229,6 +229,7 @@ protected:
 	{
 		// Clear Screen
 		Clear(olc::BLACK);
+		DrawString(ScreenWidth()/2-50,ScreenHeight()/2-50,"GEO-DESTRUCT",olc::WHITE,1);
 
 		// Input Handling
 		if (GetKey(olc::A).bHeld)
@@ -304,14 +305,15 @@ protected:
 
 		//Draw Slider
 		//FillRect(50, 50, 100, 10, olc::WHITE);
-		FillRect(50, 50, 70, 1, olc::WHITE);
-		FillRect(110, 10, 20, 1);
+		//FillRect(50, 50, 70, 1, olc::WHITE);
+		//FillRect(110, 10, 20
+		//DrawString(ScreenWidth()/2+5,ScreenHeight()/2-40,"Speed",olc::WHITE,1);
+		FillRect(ScreenWidth()/2+30, ScreenHeight()/2+45, 20,1);
+
 		//Slider Button
 		int positionOfButtonX = (int)((GetSliderValue() - 50.0f) * 2.0f); //TODO
 		FillRect(50 + positionOfButtonX - 2, 40, 4, 30, olc::RED);
-		// Display Slider value
-		//DrawString(200, 50, to_string(GetSliderValue()), olc::YELLOW);
-
+		FillRect(50 + positionOfButtonX - 2, ScreenHeight()/2+30, 4, 2, olc::RED);
 		/*-------------------------------------------------------------------------------------------*/
 		auto AreCirclesOverlappingWithEachOther = [](float x1, float y1, float r1, float x2, float y2, float r2)
 		{
@@ -491,7 +493,7 @@ protected:
 int main()
 {
 	Geo_Destruct application;
-	application.Construct(160, 120, 8, 8, FULLSCREEN, VSYNC);
+	application.Construct(120, 100, 8, 8, FULLSCREEN, VSYNC);
 	application.Start();
 	return 0;
 }
