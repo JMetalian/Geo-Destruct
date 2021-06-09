@@ -144,11 +144,34 @@ private:
 	int selectedPointInPath = 0;
 	float speedOfAgent = 0.0f;
 
-	
+
+	float fSliderValue = 50.0f;//Minimum 50
+	void IncrementSlider() 
+	{
+		fSliderValue += 1.0f;
+		if (fSliderValue > 100.0f) 
+		{
+			fSliderValue = 100.0f;
+		}
+	}
+
+	void DecrementSlider() 
+	{
+		fSliderValue -= 1.0f;
+		if (fSliderValue < 50.0f)
+		{
+			fSliderValue = 50.0f;
+		}
+	}
+	float GetSliderValue() {
+		return fSliderValue;
+	}
+
+
 	vector<pair<float, float>> defaultCircleCollider;
 	vector<CircleCollider> vectorOfAllColliders;
-	CircleCollider* pSelectedBall = nullptr;
-	// Adds a ball to the vector
+	CircleCollider* pSelecterCircle = nullptr;
+	
 	void AddNewCircleCollider(float x, float y, float r = 5.0f)
 	{
 		CircleCollider circleCollider;
@@ -161,6 +184,8 @@ private:
 		circleCollider.id = vectorOfAllColliders.size();//In order to uniquely name them.
 		vectorOfAllColliders.emplace_back(circleCollider);
 	}
+
+	
 
 public:
 	Geo_Destruct()
@@ -177,7 +202,9 @@ protected:
 		defaultCircleCollider.push_back({ 0.0f, 0.0f });
 		int nPoints = 20;
 		for (int i = 0; i < nPoints; i++)
+		{
 			defaultCircleCollider.push_back({ cosf(i / (float)(nPoints - 1) * 2.0f * 3.14159f) , sinf(i / (float)(nPoints - 1) * 2.0f * 3.14159f) });
+		}
 
 		float radiusForBalls = 3.0f;
 		AddNewCircleCollider(ScreenWidth() / 2, ScreenHeight() / 2 + 5, radiusForBalls);
@@ -204,6 +231,15 @@ protected:
 		Clear(olc::BLACK);
 
 		// Input Handling
+		if (GetKey(olc::A).bHeld)
+		{
+			DecrementSlider();
+		}
+		if (GetKey(olc::D).bHeld) 
+		{
+			IncrementSlider();
+		}
+
 		//Switch to the previous controlling point by pressing "E" button.
 		if (GetKey(olc::Key::E).bReleased)
 		{
@@ -259,13 +295,25 @@ protected:
 		if (offSet >=(float)(path.points.size() - 1))
 		{
 			offSet = (float)path.points.size() - 1.0f;
-			speedOfAgent-=50.0f*fElapsedTime;
+			speedOfAgent-=/*50.0f*/fSliderValue *fElapsedTime;
 		}
 		Points p1 = path.GetSplinePoint(offSet, ISLOOPED);
 		Points g1 = path.GetSplineGradient(offSet, ISLOOPED);
 		float angle = atan2(-g1.y, g1.x);//arctan value of angle (in radian)
+		/*----------------------------------------------------------------------------------------*/
 
-		auto AreCirclesOverlapping = [](float x1, float y1, float r1, float x2, float y2, float r2)
+		//Draw Slider
+		//FillRect(50, 50, 100, 10, olc::WHITE);
+		FillRect(50, 50, 70, 1, olc::WHITE);
+		FillRect(110, 10, 20, 1);
+		//Slider Button
+		int positionOfButtonX = (int)((GetSliderValue() - 50.0f) * 2.0f); //TODO
+		FillRect(50 + positionOfButtonX - 2, 40, 4, 30, olc::RED);
+		// Display Slider value
+		//DrawString(200, 50, to_string(GetSliderValue()), olc::YELLOW);
+
+		/*-------------------------------------------------------------------------------------------*/
+		auto AreCirclesOverlappingWithEachOther = [](float x1, float y1, float r1, float x2, float y2, float r2)
 		{
 			return fabs((x1 - x2) * (x1 - x2) + (y1 - y2) * (y1 - y2)) <= (r1 + r2) * (r1 + r2);
 		};
@@ -276,25 +324,25 @@ protected:
 		//Move the character on the spline by pressing "W".
 		if(GetKey(olc::Key::W).bPressed)
 		{
-			pSelectedBall = nullptr;
+			pSelecterCircle = nullptr;
 			for (auto& circle : vectorOfAllColliders)
 			{
 				if (circle.px==p1.x || circle.py==p1.y)
 				{
-					pSelectedBall = &circle;
+					pSelecterCircle = &circle;
 					break;
 				}
 			}
 		}
 		if (GetKey(olc::Key::W).bHeld)
 		{
-			speedOfAgent += 50.0f * fElapsedTime;
+			speedOfAgent += /*50.0f*/fSliderValue * fElapsedTime;
 		}
 		if(GetKey(olc::Key::W).bReleased)
 		{
-			pSelectedBall->vx = 0;
-			pSelectedBall->vy = 0;
-			pSelectedBall = nullptr;
+			pSelecterCircle->vx = 0;
+			pSelecterCircle->vy = 0;
+			pSelecterCircle = nullptr;
 
 		}
 		if (speedOfAgent >= (float)path.normOfSpline)
@@ -320,12 +368,24 @@ protected:
 			circleCol.py += circleCol.vy * fElapsedTime;
 
 			//Circles may come up from other sides of the screen
-			if (circleCol.px < 0) circleCol.px += (float)ScreenWidth();
-			if (circleCol.px >= ScreenWidth()) circleCol.px -= (float)ScreenWidth();
-			if (circleCol.py < 0) circleCol.py += (float)ScreenHeight();
-			if (circleCol.py >= ScreenHeight()) circleCol.py -= (float)ScreenHeight();
+			if (circleCol.px < 0) 
+			{
+				circleCol.px += (float)ScreenWidth();
+			} 
+			if (circleCol.px >= ScreenWidth()) 
+			{
+				circleCol.px -= (float)ScreenWidth();
+			} 
+			if (circleCol.py < 0)
+			{
+				circleCol.py += (float)ScreenHeight();
+			}
+			if (circleCol.py >= ScreenHeight())
+			{
+				circleCol.py -= (float)ScreenHeight();
+			}
 
-			//Set velocity if it is too low 
+			//Set velocity of the object if it is too slow. 
 			if (circleCol.vx * circleCol.vx + circleCol.vy * circleCol.vy < 0.01f)
 			{
 				circleCol.vx = 0;
@@ -339,15 +399,15 @@ protected:
 			{
 				if (circle.id != secondCircle.id)
 				{
-					if (AreCirclesOverlapping(circle.px, circle.py, circle.radius, secondCircle.px, secondCircle.py, secondCircle.radius))
+					if (AreCirclesOverlappingWithEachOther(circle.px, circle.py, circle.radius, secondCircle.px, secondCircle.py, secondCircle.radius))
 					{
 						// Collision has occured
-						vectorOfCollidingTwo.push_back({ &circle, &secondCircle });
-						if (pSelectedBall != nullptr)
+						vectorOfCollidingTwo.push_back({&circle, &secondCircle});
+						if (pSelecterCircle != nullptr)
 						{
-							// Apply velocity
-							pSelectedBall->vx = 100.0f * cosf(angle);
-							pSelectedBall->vy = 100.0f * -sinf(angle);
+							// Simulate the collider's velocity which is behind the agent. Rotate collider according to normal vector of agent.
+							pSelecterCircle->vx = speedOfAgent * cosf(angle);
+							pSelecterCircle->vy = speedOfAgent * -sinf(angle);
 
 						}
 						// Distance between circle centers
@@ -420,7 +480,10 @@ protected:
 			DrawLine(c.first->px, c.first->py, c.second->px, c.second->py, olc::RED);
 		}
 		
+		//Draw the normal vector of agent.
 		//DrawLine(10.0f * cosf(angle) + p1.x, 10.0f *-sinf(angle) + p1.y,-10.0f * cosf(angle) + p1.x, -10.0f * -sinf(angle) + p1.y,olc::BLUE);
+
+
 		return true;
 	}
 };
