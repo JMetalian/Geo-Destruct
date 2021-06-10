@@ -287,12 +287,12 @@ protected:
 		for (int i = 0; i < path.points.size(); i++)
 		{
 			path.normOfSpline +=(path.points[i].distanceBetweenPoints = path.GetPortionLength(i, ISLOOPED));
-			DrawCircle(path.points[i].x,path.points[i].y, 2, olc::WHITE);
+			DrawRect(path.points[i].x-2,path.points[i].y-3,5,5, olc::WHITE);
 		}
 
 		// Display controllers
-		DrawLine(path.points[selectedPointInPath].x - 1, path.points[selectedPointInPath].y - 1, path.points[selectedPointInPath].x + 2, path.points[selectedPointInPath].y + 2, olc::GREEN);
-			
+		DrawLine(path.points[selectedPointInPath].x - 2, path.points[selectedPointInPath].y - 2, path.points[selectedPointInPath].x + 2, path.points[selectedPointInPath].y + 2, olc::GREEN);
+
 		// Gradient demonstrater
 		float offSet = path.NormalOffSet(speedOfAgent);
 		if (offSet >=(float)(path.points.size() - 1))
