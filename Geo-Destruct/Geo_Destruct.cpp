@@ -22,19 +22,19 @@ struct Spline
 {
 	vector<Points> points;
 	float normOfSpline;
-	Points GetSplinePoint(float t, bool isLooped = false)
+	Points GetSplinePoint(float a, bool isLooped = false)
 	{
 		int p0, p1, p2, p3;
 		if (!isLooped)
 		{
-			p1 = (int)t + 1;
+			p1 = (int)a + 1;
 			p2 = p1 + 1;
 			p3 = p2 + 1;
 			p0 = p1 - 1;
 		}
 		else
 		{
-			p1 = (int)t;
+			p1 = (int)a;
 			p2 = (p1 + 1) % points.size();
 			p3 = (p2 + 1) % points.size();
 			if (p1 >= 1)
@@ -46,60 +46,60 @@ struct Spline
 				p0 = points.size() - 1;
 			}
 		}
-		t = t - (int)t;
+		a = a - (int)a;
 
-		float tt = t * t;
-		float ttt = tt * t;
+		float aa = a * a;
+		float aaa = aa * a;
 
-		float p1Prime = -ttt + 2.0f * tt - t;
-		float p2Prime = 3.0f * ttt - 5.0f * tt + 2.0f;
-		float p3Prime = -3.0f * ttt + 4.0f * tt + t;
-		float p4Prime = ttt - tt;
+		//Catmull-rom Interpolation
+		float p1Prime = -aaa + 2.0f * aa - a;
+		float p2Prime = 3.0f * aaa - 5.0f * aa + 2.0f;
+		float p3Prime = -3.0f * aaa + 4.0f * aa + a;
+		float p4Prime = aaa - aa;
 
 		float tx = 0.5f * (points[p0].x * p1Prime + points[p1].x * p2Prime + points[p2].x * p3Prime + points[p3].x * p4Prime);
 		float ty = 0.5f * (points[p0].y * p1Prime + points[p1].y * p2Prime + points[p2].y * p3Prime + points[p3].y * p4Prime);
 
-		return{ tx, ty };
+		return{tx, ty};
 	}
-
-	Points GetSplineGradient(float t, bool isLooped = false)
+	Points GetSplineGradient(float a, bool isLooped = false)
 	{
 		int p0, p1, p2, p3;
 		if (!isLooped)
 		{
-			p1 = (int)t + 1;
+			p1 = (int)a + 1;
 			p2 = p1 + 1;
 			p3 = p2 + 1;
 			p0 = p1-1;
 		}
 		else
 		{
-			p1 = (int)t;
+			p1 = (int)a;
 			p2 = (p1 + 1) % points.size();
 			p3 = (p2 + 1) % points.size();
 			p0 = p1 >= 1 ? p1 - 1 : points.size() - 1;
 		}
 
-		t = t - (int)t;
+		a = a - (int)a;
 
-		float tt = t * t;
-		float ttt = tt * t;
+		float aa = a * a;
+		float aaa = aa * a;
 
 		//Catmull-rom Interpolation
-		float p1Prime = -3.0f * tt + 4.0f * t - 1;
-		float p2Prime = 9.0f * tt - 10.0f * t;
-		float p3Prime = -9.0f * tt + 8.0f * t + 1.0f;
-		float p4Prime = 3.0f * tt - 2.0f * t;
+		float p1Prime = -3.0f * aa + 4.0f * a - 1;
+		float p2Prime = 9.0f * aa - 10.0f * a;
+		float p3Prime = -9.0f * aa + 8.0f * a + 1.0f;
+		float p4Prime = 3.0f * aa - 2.0f * a;
 
 		float tx = 0.5f * (points[p0].x * p1Prime + points[p1].x * p2Prime + points[p2].x * p3Prime + points[p3].x * p4Prime);
 		float ty = 0.5f * (points[p0].y * p1Prime + points[p1].y * p2Prime + points[p2].y * p3Prime + points[p3].y * p4Prime);
 
-		return{ tx, ty };
+		return{tx, ty};
 	}
 	float GetPortionLength(int node, bool isLooped = false) //Returns the norm of single segment among many others between two points
 	{
 		float norm = 0.0f;
-		float stepSize = 0.003f;
+		float stepSize = 0.001f;
 		Points oldPoint;
 		Points newPoint;
 
@@ -136,7 +136,6 @@ struct CircleCollider
 	int id;
 };
 
-
 class Geo_Destruct : public olc::PixelGameEngine
 {
 private:
@@ -154,7 +153,6 @@ private:
 			fSliderValue = 100.0f;
 		}
 	}
-
 	void DecrementSlider() 
 	{
 		fSliderValue -= 1.0f;
@@ -184,8 +182,6 @@ private:
 		circleCollider.id = vectorOfAllColliders.size();//In order to uniquely name them.
 		vectorOfAllColliders.emplace_back(circleCollider);
 	}
-
-	
 
 public:
 	Geo_Destruct()
@@ -306,9 +302,6 @@ protected:
 		/*----------------------------------------------------------------------------------------*/
 
 		//Draw Slider
-		//FillRect(50, 50, 100, 10, olc::WHITE);
-		//FillRect(50, 50, 70, 1, olc::WHITE);
-		//FillRect(110, 10, 20
 		FillRect(ScreenWidth()/2+30, ScreenHeight()/2+40, 25,1);
 		//Slider Button
 		int positionOfButtonX = (int)((GetSliderValue() - 50.0f)*.5f); //TODO
